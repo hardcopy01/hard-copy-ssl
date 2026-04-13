@@ -8,7 +8,7 @@
 
 (function () {
   var CHECKOUT_TIME = 616; // 10:16
-  var CHECKOUT_URL = 'https://checkout.ticto.app/O6C3AE389';
+  var CHECKOUT_URL = window._CK;
 
   var wrapper = document.getElementById('video-wrapper');
   var checkoutSection = document.getElementById('checkout-section');

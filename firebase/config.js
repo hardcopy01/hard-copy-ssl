@@ -1,16 +1,19 @@
-/* Firebase Config — Hard Copy SSL */
-
-var firebaseConfig = {
-  apiKey: "AIzaSyA-r8tr8GIZwVquD_Kx79iZ8uiuK0nr-5I",
-  authDomain: "hdcpy2025.firebaseapp.com",
-  projectId: "hdcpy2025",
-  storageBucket: "hdcpy2025.firebasestorage.app",
-  messagingSenderId: "565567759217",
-  appId: "1:565567759217:web:847d42d94d764bb3eeccd0",
-  measurementId: "G-TNSQBQ34SE"
-};
+/* Firebase Config — uses vault */
+var firebaseConfig = null;
 
 function loadFirebase() {
+  // Build config from vault
+  if (!window._FC) { console.warn('[FB] Vault not loaded'); return; }
+  firebaseConfig = {
+    apiKey: window._FC.a,
+    authDomain: window._FC.b,
+    projectId: window._FC.c,
+    storageBucket: window._FC.d,
+    messagingSenderId: window._FC.e,
+    appId: window._FC.f,
+    measurementId: window._FC.g,
+  };
+
   var scripts = [
     'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',
@@ -29,14 +32,8 @@ function initFirebase() {
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
     window.dispatchEvent(new CustomEvent('hc:firebase_ready', { detail: { db: db } }));
-    console.log('[Firebase] Inicializado com sucesso');
-  } catch (err) {
-    console.error('[Firebase] Erro:', err);
-  }
+  } catch (err) { /* silent */ }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadFirebase);
-} else {
-  loadFirebase();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadFirebase);
+else loadFirebase();

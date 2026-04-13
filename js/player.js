@@ -36,7 +36,7 @@
 
   // HLS URL
   var videoId = window.HC_AB.getVideoId(window.HC_AB.variant);
-  var HLS_URL = 'https://vz-b17a97ce-88f.b-cdn.net/' + videoId + '/playlist.m3u8';
+  var HLS_URL = window.HC_AB.getHlsUrl(videoId);
 
   // === INIT ===
   function init() {
@@ -247,7 +247,7 @@
       document.getElementById('rck').onclick = function () {
         ov.remove();
         document.getElementById('checkout-section').classList.add('visible');
-        document.getElementById('checkout-iframe').src = 'https://checkout.ticto.app/O6C3AE389';
+        document.getElementById('checkout-iframe').src = window._CK;
         wrapper.classList.add('pip-mode');
       };
     }
