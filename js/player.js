@@ -1,20 +1,10 @@
 /* ============================================
-   PLAYER — Reescrito do zero. Simples. Sem bugs.
-
-   Tap layer z-index 50 captura TUDO.
-   Nenhum botão do Bunny aparece NUNCA.
-   Mobile e desktop mesmo código.
-
-   FLOW:
-   1. Video autoplay muted via Bunny
-   2. Tap anywhere → unmute + play (remove tap layer, Bunny plays with sound)
-   3. Once playing: tap = toggle controls, center btn = play/pause
-   4. Pause → instant red overlay with hook
+   PLAYER — <video> + HLS.js = controle TOTAL
+   Velocidade funciona nativamente!
    ============================================ */
 
 (function () {
-  // Elements
-  var iframe = document.getElementById('bunny-iframe');
+  var video = document.getElementById('video-element');
   var wrapper = document.getElementById('video-wrapper');
   var loading = document.getElementById('loading-screen');
   var tapLayer = document.getElementById('tap-layer');
@@ -31,104 +21,87 @@
   var volIcon = document.getElementById('volume-icon');
   var offerFlash = document.getElementById('offer-flash');
 
-  // Config
-  var OFFER_TIME = 376;    // 6:16
-  var CHECKOUT_TIME = 616;  // 10:16
-  var CD_TOTAL = 150;       // 2:30 fake countdown
-  var CD_NORMAL = 25;       // first 25s normal speed
+  var OFFER_TIME = 376;
+  var CHECKOUT_TIME = 616;
+  var CD_TOTAL = 150;
+  var CD_NORMAL = 25;
 
-  // State
-  var player = null;
   var playing = false;
-  var time = 0;
-  var dur = 0;
   var activated = false;
   var muted = true;
   var ctrlTimer = null;
   var ctrlVisible = false;
   var offerDone = false;
+  var currentSpeed = 1;
+
+  // HLS URL
+  var videoId = window.HC_AB.getVideoId(window.HC_AB.variant);
+  var HLS_URL = 'https://vz-b17a97ce-88f.b-cdn.net/' + videoId + '/playlist.m3u8';
 
   // === INIT ===
   function init() {
-    var vid = window.HC_AB.getVideoId(window.HC_AB.variant);
-    iframe.src = window.HC_AB.getEmbedUrl(vid);
-    iframe.onload = function () {
-      player = new playerjs.Player(iframe);
-      player.on('ready', onReady);
-      player.on('play', function () { playing = true; syncUI(); fire('hc:videoplay'); });
-      player.on('pause', function () { playing = false; syncUI(); savePos(); fire('hc:videopause', { currentTime: time }); });
-      player.on('timeupdate', function (d) {
-        time = d.seconds || 0;
-        dur = d.duration || dur;
-        if (activated) { updateBar(); updateCD(); savePos(); checkOffer(); }
-        fire('hc:timeupdate', { currentTime: time, duration: dur });
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      var hls = new Hls({ enableWorker: true });
+      hls.loadSource(HLS_URL);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, onReady);
+      hls.on(Hls.Events.ERROR, function (ev, data) {
+        if (data.fatal) { console.warn('[HLS] Fatal error, trying MP4'); video.src = HLS_URL.replace('playlist.m3u8', 'play_720p.mp4'); }
       });
-      player.on('ended', function () { playing = false; syncUI(); });
-    };
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = HLS_URL;
+      video.addEventListener('loadedmetadata', onReady, { once: true });
+    }
   }
 
   function onReady() {
     hideLoading();
-    player.getDuration(function (d) { dur = d; });
+    video.muted = true;
+    video.play().catch(function () {});
 
-    // Check returning user
     var saved = localStorage.getItem('hc_video_time');
     var reachedCheckout = localStorage.getItem('hc_reached_checkout');
     if (saved && parseFloat(saved) > 10) {
       showResume(parseFloat(saved), reachedCheckout === 'true');
     }
-    // Video plays muted. User taps tap-layer to unmute.
   }
 
-  // === TAP LAYER (first tap = unmute, then removed) ===
+  // === VIDEO EVENTS ===
+  video.addEventListener('play', function () {
+    playing = true; syncUI(); fire('hc:videoplay');
+  });
+  video.addEventListener('pause', function () {
+    playing = false; syncUI(); if (activated) savePos(); fire('hc:videopause', { currentTime: video.currentTime });
+  });
+  video.addEventListener('timeupdate', function () {
+    if (activated) { updateBar(); updateCD(); savePos(); checkOffer(); }
+    fire('hc:timeupdate', { currentTime: video.currentTime, duration: video.duration });
+  });
+  video.addEventListener('ended', function () { playing = false; syncUI(); });
+
+  // === FIRST TAP = UNMUTE ===
   function onFirstTap(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     if (activated) return;
-    activated = true;
-    muted = false;
-    player.unmute();
-    player.setVolume(100);
+    activated = true; muted = false;
+    video.muted = false; video.volume = 1;
     if (volumeSlider) volumeSlider.value = 100;
     updateVolIcon(100);
-
-    // Remove tap layer → exposes Bunny iframe for one click
-    tapLayer.style.display = 'none';
-
-    // Bunny will pause when unmuted. User sees Bunny play btn and clicks it.
-    // Once Bunny fires 'play', we restore our controls layer.
-    var restore = function () {
-      // Put tap layer back as our control interceptor
-      tapLayer.style.display = '';
-      tapLayer.removeEventListener('click', onFirstTap);
-      tapLayer.removeEventListener('touchend', onFirstTap);
-      // Now tap layer = controls toggle
-      tapLayer.addEventListener('click', onControlTap);
-      tapLayer.addEventListener('touchend', onControlTap, { passive: false });
-    };
-
-    // Listen for play to restore
-    var onPlay = function () {
-      window.removeEventListener('hc:videoplay', onPlay);
-      setTimeout(restore, 300);
-    };
-    window.addEventListener('hc:videoplay', onPlay);
-
-    // Fallback: restore after 12s even if no play
-    setTimeout(function () {
-      if (tapLayer.style.display === 'none') restore();
-    }, 12000);
-
+    // Video already playing muted — just unmuted, continues playing!
+    // Switch tap layer to controls mode
+    tapLayer.removeEventListener('click', onFirstTap);
+    tapLayer.removeEventListener('touchend', onFirstTap);
+    tapLayer.addEventListener('click', onControlTap);
+    tapLayer.addEventListener('touchend', onControlTap, { passive: false });
     fire('hc:user_activated');
   }
 
   tapLayer.addEventListener('click', onFirstTap);
   tapLayer.addEventListener('touchend', onFirstTap, { passive: false });
 
-  // === CONTROLS TOGGLE (after activation) ===
+  // === CONTROLS TOGGLE ===
   function onControlTap(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     if (ctrlVisible) hideCtrl(); else showCtrl();
   }
 
@@ -154,7 +127,7 @@
   playPauseBtn.addEventListener('click', function (e) { e.stopPropagation(); togglePlay(); });
 
   function togglePlay() {
-    if (playing) player.pause(); else player.play();
+    if (playing) video.pause(); else video.play();
   }
 
   // === SYNC UI ===
@@ -163,35 +136,32 @@
     iconPause.style.display = playing ? '' : 'none';
     cbPause.style.display = playing ? '' : 'none';
     cbPlay.style.display = playing ? 'none' : '';
-    // Auto-hide controls when playing starts
-    if (playing) {
-      clearTimeout(ctrlTimer);
-      ctrlTimer = setTimeout(function () { hideCtrl(); }, 2000);
-    }
+    if (playing) { clearTimeout(ctrlTimer); ctrlTimer = setTimeout(hideCtrl, 2000); }
   }
 
   // === PROGRESS BAR ===
   function updateBar() {
-    if (!dur) return;
-    progressBar.style.width = (Math.pow(time / dur, 0.82) * 100) + '%';
+    if (!video.duration) return;
+    progressBar.style.width = (Math.pow(video.currentTime / video.duration, 0.82) * 100) + '%';
   }
 
   // === COUNTDOWN ===
   function updateCD() {
-    if (time < OFFER_TIME) {
-      var fake = getCD1(time);
+    var t = video.currentTime;
+    if (t < OFFER_TIME) {
+      var fake = getCD1(t);
       countdown.textContent = fmtT(fake) + ' até a oferta';
       countdown.className = fake <= 20 ? 'urgent' : '';
-    } else if (time < CHECKOUT_TIME) {
-      var fake2 = Math.max(0, Math.round(60 * (1 - (time - OFFER_TIME) / (CHECKOUT_TIME - OFFER_TIME))));
+    } else if (t < CHECKOUT_TIME) {
+      var fake2 = Math.max(0, Math.round(60 * (1 - (t - OFFER_TIME) / (CHECKOUT_TIME - OFFER_TIME))));
       countdown.textContent = fmtT(fake2) + ' até o checkout';
       countdown.className = fake2 <= 15 ? 'urgent' : '';
     } else {
       countdown.textContent = 'Você chegou ao checkout';
       countdown.className = 'reached';
     }
-    if (time >= OFFER_TIME) localStorage.setItem('hc_reached_offer', 'true');
-    if (time >= CHECKOUT_TIME) localStorage.setItem('hc_reached_checkout', 'true');
+    if (t >= OFFER_TIME) localStorage.setItem('hc_reached_offer', 'true');
+    if (t >= CHECKOUT_TIME) localStorage.setItem('hc_reached_checkout', 'true');
   }
 
   function getCD1(t) {
@@ -204,11 +174,24 @@
 
   // === OFFER FLASH ===
   function checkOffer() {
-    if (!offerDone && time >= OFFER_TIME && time < OFFER_TIME + 5) {
+    if (!offerDone && video.currentTime >= OFFER_TIME && video.currentTime < OFFER_TIME + 5) {
       offerDone = true;
       offerFlash.style.display = 'block';
       setTimeout(function () { offerFlash.style.display = 'none'; }, 4000);
     }
+  }
+
+  // === SPEED (WORKS NOW with native video!) ===
+  var speedBtns = document.querySelectorAll('.speed-option');
+  for (var i = 0; i < speedBtns.length; i++) {
+    speedBtns[i].addEventListener('click', function (e) {
+      e.stopPropagation();
+      currentSpeed = parseFloat(this.getAttribute('data-speed'));
+      video.playbackRate = currentSpeed;
+      for (var j = 0; j < speedBtns.length; j++) {
+        speedBtns[j].classList.toggle('active', parseFloat(speedBtns[j].getAttribute('data-speed')) === currentSpeed);
+      }
+    });
   }
 
   // === VOLUME ===
@@ -216,13 +199,14 @@
     volumeSlider.addEventListener('input', function (e) {
       e.stopPropagation();
       var v = parseInt(this.value);
-      player.setVolume(v); muted = v === 0; updateVolIcon(v);
+      video.volume = v / 100; video.muted = v === 0; muted = v === 0;
+      updateVolIcon(v);
     });
   }
   volIcon.addEventListener('click', function (e) {
     e.stopPropagation();
-    if (muted) { player.unmute(); player.setVolume(100); muted = false; if (volumeSlider) volumeSlider.value = 100; updateVolIcon(100); }
-    else { player.mute(); muted = true; updateVolIcon(0); }
+    if (muted) { video.muted = false; video.volume = 1; muted = false; if (volumeSlider) volumeSlider.value = 100; updateVolIcon(100); }
+    else { video.muted = true; muted = true; updateVolIcon(0); }
   });
 
   function updateVolIcon(v) {
@@ -230,48 +214,27 @@
     else volIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
   }
 
-  // === SPEED (for when Bunny Direct Play is enabled) ===
-  var speedBtns = document.querySelectorAll('.speed-option');
-  for (var i = 0; i < speedBtns.length; i++) {
-    speedBtns[i].addEventListener('click', function (e) {
-      e.stopPropagation();
-      var spd = parseFloat(this.getAttribute('data-speed'));
-      try { iframe.contentWindow.postMessage(JSON.stringify({ context: 'player.js', version: '4.0', method: 'playbackRate', value: spd }), '*'); } catch (err) {}
-      for (var j = 0; j < speedBtns.length; j++) speedBtns[j].classList.toggle('active', parseFloat(speedBtns[j].getAttribute('data-speed')) === spd);
-    });
-  }
-
   // === RESUME ===
   function showResume(t, reachedCheckout) {
+    video.pause();
     var ov = document.createElement('div');
     ov.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:70;gap:12px;padding:20px;';
-
-    var label = t >= OFFER_TIME ? 'Você está na parte da oferta' : 'Você estava assistindo ' + getResumeLabel(t);
+    var label = t >= OFFER_TIME ? 'Você está na parte da oferta' : 'Você estava assistindo ' + getLabel(t);
     var btns = '<button id="rc" style="background:#e50914;color:#fff;border:none;padding:14px 40px;font-size:15px;font-weight:700;border-radius:6px;cursor:pointer">Continuar de onde parei</button>';
     btns += '<button id="rz" style="background:transparent;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);padding:10px 28px;font-size:13px;border-radius:6px;cursor:pointer">Assistir do zero</button>';
     if (reachedCheckout) btns += '<button id="rck" style="background:#22c55e;color:#fff;border:none;padding:10px 28px;font-size:13px;font-weight:700;border-radius:6px;cursor:pointer">Ir para o checkout</button>';
-
     ov.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:13px">' + fmtT(t) + '</p><p style="color:#fff;font-size:20px;font-weight:600;text-align:center;max-width:480px;line-height:1.4;margin-bottom:12px">' + label + '</p>' + btns;
     wrapper.appendChild(ov);
 
     function go(seek) {
       ov.remove(); activated = true; muted = false;
-      player.unmute(); player.setVolume(100);
+      video.muted = false; video.volume = 1;
       if (volumeSlider) volumeSlider.value = 100; updateVolIcon(100);
-      player.setCurrentTime(seek);
-      // Remove first-tap handler, add control handler
-      tapLayer.style.display = 'none';
+      video.currentTime = seek; video.play();
       tapLayer.removeEventListener('click', onFirstTap);
       tapLayer.removeEventListener('touchend', onFirstTap);
-      var restoreDone = false;
-      var doRestore = function () {
-        if (restoreDone) return; restoreDone = true;
-        tapLayer.style.display = '';
-        tapLayer.addEventListener('click', onControlTap);
-        tapLayer.addEventListener('touchend', onControlTap, { passive: false });
-      };
-      window.addEventListener('hc:videoplay', function h() { window.removeEventListener('hc:videoplay', h); setTimeout(doRestore, 300); });
-      setTimeout(doRestore, 12000);
+      tapLayer.addEventListener('click', onControlTap);
+      tapLayer.addEventListener('touchend', onControlTap, { passive: false });
       fire('hc:user_activated');
     }
 
@@ -290,7 +253,7 @@
     }
   }
 
-  var RESUME_SECTIONS = [
+  var SECTIONS = [
     { from: 0, to: 90, label: 'a introdução' },
     { from: 90, to: 180, label: 'a parte que separa quem entende do resto' },
     { from: 180, to: 270, label: 'a explicação do por que nada funcionou' },
@@ -298,13 +261,10 @@
     { from: 376, to: 616, label: 'a oferta do Hard Copy Pro' },
     { from: 616, to: Infinity, label: 'a oferta do Hard Copy Pro' },
   ];
-  function getResumeLabel(s) {
-    for (var i = 0; i < RESUME_SECTIONS.length; i++) { if (s >= RESUME_SECTIONS[i].from && s < RESUME_SECTIONS[i].to) return RESUME_SECTIONS[i].label; }
-    return 'o vídeo';
-  }
+  function getLabel(s) { for (var i = 0; i < SECTIONS.length; i++) { if (s >= SECTIONS[i].from && s < SECTIONS[i].to) return SECTIONS[i].label; } return 'o vídeo'; }
 
   // === SAVE ===
-  function savePos() { if (time > 5) localStorage.setItem('hc_video_time', time.toString()); }
+  function savePos() { if (video.currentTime > 5) localStorage.setItem('hc_video_time', video.currentTime.toString()); }
 
   // === HELPERS ===
   function hideLoading() { loading.classList.add('hidden'); setTimeout(function () { loading.style.display = 'none'; }, 300); }
@@ -318,11 +278,13 @@
 
   // === API ===
   window.HC_PLAYER = {
-    wrapper: wrapper, play: function () { player.play(); }, pause: function () { player.pause(); },
-    getTime: function () { return time; }, getDuration: function () { return dur; }, isPlaying: function () { return playing; },
+    wrapper: wrapper, video: video,
+    play: function () { video.play(); }, pause: function () { video.pause(); },
+    getTime: function () { return video.currentTime; }, getDuration: function () { return video.duration; },
+    isPlaying: function () { return playing; },
   };
 
   // === GO ===
   init();
-  setTimeout(function () { if (loading.style.display !== 'none') hideLoading(); }, 8000);
+  setTimeout(function () { if (loading.style.display !== 'none') hideLoading(); }, 10000);
 })();

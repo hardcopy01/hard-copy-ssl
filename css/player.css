@@ -18,11 +18,11 @@ html,body{
   box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:9999;
 }
 
-/* === IFRAME (oversized to cut Bunny UI) === */
-#bunny-iframe{
-  position:absolute;top:-4px;left:-4px;
-  width:calc(100% + 8px);height:calc(100% + 130px);
-  border:none;background:#000;
+/* === VIDEO === */
+#video-element{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  object-fit:contain;background:#000;
 }
 
 /* === TAP LAYER (covers everything, captures all taps) === */
@@ -170,12 +170,7 @@ html,body{
 
 /* === MOBILE === */
 @media(max-width:768px){
-  #bunny-iframe{
-    position:absolute;top:50%;left:50%;
-    transform:translate(-50%,-50%);
-    width:120vw;height:120vh;
-    min-width:120vw;min-height:120vh;
-  }
+  #video-element{ object-fit:cover; }
   #player-controls{padding:0 14px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));gap:10px}
   #progress-container{height:7px}
   #progress-bar::after{width:16px;height:16px;right:-7px}
