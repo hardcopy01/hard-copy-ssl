@@ -59,7 +59,8 @@
     var reachedCheckout = localStorage.getItem('hc_reached_checkout');
 
     if (saved && parseFloat(saved) > 10) {
-      // RETURNING USER → skip play button, go straight to resume
+      // RETURNING USER → hide start screen, go straight to resume
+      startScreen.classList.add('hidden');
       video.muted = true;
       video.pause();
       showResume(parseFloat(saved), reachedCheckout === 'true');
