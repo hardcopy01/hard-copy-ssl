@@ -56,19 +56,22 @@
     document.getElementById('date-range').textContent =
       formatDate(monthAgo) + ' - ' + formatDate(now);
 
-    loadFirebaseSDK(() => {
-      try { firebase.initializeApp(firebaseConfig); } catch (e) { /* already init */ }
-      db = firebase.firestore();
-
-      loadChartJs(() => {
-        chartJsLoaded = true;
-        initCharts();
-        loadMetrics();
-      });
-
-      document.getElementById('refresh-btn').addEventListener('click', loadMetrics);
-      setInterval(loadMetrics, 30000);
-    });
+    // Wait for Firebase to be ready (loaded by firebase/config.js)
+    function waitForFirebase() {
+      if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+        db = firebase.firestore();
+        loadChartJs(() => {
+          chartJsLoaded = true;
+          initCharts();
+          loadMetrics();
+        });
+        document.getElementById('refresh-btn').addEventListener('click', loadMetrics);
+        setInterval(loadMetrics, 30000);
+      } else {
+        setTimeout(waitForFirebase, 500);
+      }
+    }
+    waitForFirebase();
   }
 
   function formatDate(d) {
@@ -195,7 +198,7 @@
 
     try {
       const snapshot = await db.collection('events')
-        .limit(10000)
+        .limit(5000)
         .get();
 
       const events = [];
