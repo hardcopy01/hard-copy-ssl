@@ -4,7 +4,7 @@
    ============================================ */
 
 (function () {
-  const DASH_PASSWORD = 'hardcopy2024'; // Altere para sua senha
+  const DASH_PASSWORD = 'HDCPY102030';
   const PITCH_TIME = 622; // 10:22 — momento do pitch/checkout
   let db = null;
   let retentionChart = null;
