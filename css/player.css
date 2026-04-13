@@ -158,35 +158,74 @@ html,body{
 }
 #video-wrapper.pip-mode #pip-close{display:flex}
 
-/* === START SCREEN (big play button) === */
+/* === START SCREEN (dopaminérgico, vídeo rápido no fundo) === */
 #start-screen{
   position:absolute;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,.7);z-index:80;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:16px;
+  z-index:80;display:flex;align-items:center;justify-content:center;
 }
 #start-screen.hidden{display:none}
 
+#start-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.65);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+}
+
+#start-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+
+/* Ring around play button */
+#start-ring{
+  width:110px;height:110px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  animation:ring-pulse 2s ease-in-out infinite;
+}
+#start-ring::before{
+  content:'';position:absolute;inset:-6px;border-radius:50%;
+  border:2px solid rgba(229,9,20,.4);
+  animation:ring-expand 2s ease-in-out infinite;
+}
+#start-ring::after{
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  border:1px solid rgba(229,9,20,.2);
+  animation:ring-expand 2s ease-in-out infinite .3s;
+}
+
 #start-play{
   width:90px;height:90px;border-radius:50%;
-  background:rgba(229,9,20,.9);border:3px solid rgba(255,255,255,.3);
+  background:linear-gradient(135deg,#e50914,#b0060f);
+  border:none;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
-  animation:pulse-play 1.8s ease-in-out infinite;
-  box-shadow:0 0 40px rgba(229,9,20,.5),0 0 80px rgba(229,9,20,.2);
+  box-shadow:0 0 30px rgba(229,9,20,.6),0 0 60px rgba(229,9,20,.3),inset 0 0 20px rgba(255,255,255,.1);
+  transition:transform .15s;
 }
-#start-play svg{width:36px;height:36px;fill:#fff;margin-left:4px}
+#start-play:active{transform:scale(.95)}
+#start-play svg{width:38px;height:38px;fill:#fff;margin-left:5px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 
-#start-text{
-  color:rgba(255,255,255,.6);font-size:14px;font-weight:600;
-  animation:pulse-text 2s ease-in-out infinite;
+#start-label{
+  color:#fff;font-size:15px;font-weight:800;letter-spacing:1.5px;
+  text-transform:uppercase;text-align:center;
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+#start-sub{
+  color:rgba(255,255,255,.7);font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:4px;
+  animation:pulse-sub 2s ease-in-out infinite;
 }
 
-@keyframes pulse-play{
-  0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(229,9,20,.5),0 0 80px rgba(229,9,20,.2)}
-  50%{transform:scale(1.1);box-shadow:0 0 60px rgba(229,9,20,.7),0 0 120px rgba(229,9,20,.3)}
+@keyframes ring-pulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.05)}
 }
-@keyframes pulse-text{0%,100%{opacity:.6}50%{opacity:.3}}
+@keyframes ring-expand{
+  0%{transform:scale(1);opacity:.6}
+  100%{transform:scale(1.4);opacity:0}
+}
+@keyframes pulse-sub{0%,100%{opacity:.7}50%{opacity:.35}}
 
 /* === LOADING === */
 #loading-screen{
@@ -211,10 +250,12 @@ html,body{
   #center-btn{width:80px;height:80px}
   #center-btn svg{width:36px;height:36px}
   .speed-option{padding:6px 11px;font-size:12px}
-  #countdown-display{font-size:14px}
+  #countdown-display{font-size:15px;font-weight:800}
+  #start-ring{width:120px;height:120px}
   #start-play{width:100px;height:100px}
   #start-play svg{width:42px;height:42px}
-  #start-text{font-size:15px}
+  #start-label{font-size:16px;letter-spacing:2px}
+  #start-sub{font-size:14px}
   #offer-flash{font-size:15px;padding:14px 24px}
   #video-wrapper.pip-mode{width:180px;height:100px;bottom:12px;right:12px}
 }

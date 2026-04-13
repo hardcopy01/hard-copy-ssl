@@ -5,7 +5,7 @@
 
 (function () {
   const DASH_PASSWORD = 'HDCPY102030';
-  const PITCH_TIME = 622; // 10:22 — momento do pitch/checkout
+  const PITCH_TIME = 618; // momento do pitch/checkout (dinâmico por vídeo)
   let db = null;
   let retentionChart = null;
   let chartA = null;
@@ -200,6 +200,7 @@
       renderIndividualMetrics('a', mA);
       renderIndividualMetrics('b', mB);
       renderRetentionCharts(mA, mB);
+      renderInsight(mA, mB);
 
     } catch (err) {
       console.error('[Dashboard] Error:', err);
@@ -381,6 +382,37 @@
 
   function fmt(n) {
     return n.toLocaleString('pt-BR');
+  }
+
+  // ---- INSIGHT ----
+  function renderInsight(mA, mB) {
+    var card = document.getElementById('insight-card');
+    var text = document.getElementById('insight-text');
+    if (!card || !text) return;
+
+    var insights = [];
+    var nameA = 'HARD LEAD SSL', nameB = 'HARD LEAD VSL';
+
+    if (mA.playRate > mB.playRate && mA.plays > 3) {
+      insights.push(nameA + ' tem ' + (mA.playRate - mB.playRate).toFixed(1) + '% mais play rate que ' + nameB + '. O lead do SSL está engajando mais no início.');
+    } else if (mB.playRate > mA.playRate && mB.plays > 3) {
+      insights.push(nameB + ' tem ' + (mB.playRate - mA.playRate).toFixed(1) + '% mais play rate que ' + nameA + '. O lead do VSL tá atraindo mais.');
+    }
+
+    if (mA.retentionPitch > mB.retentionPitch && mA.audiencePitch > 0) {
+      insights.push(nameA + ' retém ' + (mA.retentionPitch - mB.retentionPitch).toFixed(1) + '% mais leads até o pitch. A narrativa do SSL tá prendendo melhor.');
+    } else if (mB.retentionPitch > mA.retentionPitch && mB.audiencePitch > 0) {
+      insights.push(nameB + ' retém ' + (mB.retentionPitch - mA.retentionPitch).toFixed(1) + '% mais leads até o pitch. A narrativa do VSL tá performando melhor.');
+    }
+
+    if (mA.uniqueViews + mB.uniqueViews === 0) {
+      insights.push('Ainda sem dados suficientes. Aguarde o tráfego começar para ver os insights.');
+    }
+
+    if (insights.length > 0) {
+      text.textContent = insights[0];
+      card.style.display = 'block';
+    }
   }
 
   // ---- INIT ----

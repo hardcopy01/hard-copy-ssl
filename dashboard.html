@@ -22,11 +22,20 @@
 
     <!-- HEADER -->
     <div class="dash-header">
-      <h1>Hard Copy SSL — Dashboard</h1>
+      <h1 style="display:flex;align-items:center;gap:10px">
+        <span style="background:#e50914;color:#fff;padding:4px 10px;border-radius:4px;font-size:14px;font-weight:800;letter-spacing:1px">HC</span>
+        Hard Copy SSL
+      </h1>
       <div class="header-actions">
         <span class="date-range" id="date-range"></span>
         <button class="refresh-btn" id="refresh-btn">Atualizar</button>
       </div>
+    </div>
+
+    <!-- INSIGHT CARD -->
+    <div id="insight-card" style="background:rgba(229,9,20,.08);border:1px solid rgba(229,9,20,.2);border-radius:10px;padding:16px 20px;margin-bottom:24px;display:none">
+      <p style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px">📊 Insight do dia</p>
+      <p id="insight-text" style="font-size:15px;color:#fff;font-weight:600;line-height:1.4"></p>
     </div>
 
     <!-- ================================================ -->

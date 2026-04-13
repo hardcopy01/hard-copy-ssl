@@ -54,8 +54,10 @@
 
   function onReady() {
     hideLoading();
+    // Play video fast (10x) muted in background for dopamine preview
     video.muted = true;
-    video.play().then(function () { video.pause(); video.currentTime = 0; }).catch(function () {});
+    video.playbackRate = 10;
+    video.play().catch(function () {});
     startScreen.classList.remove('hidden');
   }
 
@@ -99,8 +101,8 @@
   function startVideo(seekTo) {
     activated = true; muted = false;
     video.muted = false; video.volume = 1;
+    video.playbackRate = 1; currentSpeed = 1;
     video.currentTime = seekTo;
-    video.playbackRate = currentSpeed;
     video.play();
     if (volumeSlider) volumeSlider.value = 100;
     updateVolIcon(100);
