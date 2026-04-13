@@ -12,8 +12,16 @@
   let chartB = null;
   let chartJsLoaded = false;
 
-  // ---- LOGIN ----
+  // ---- LOGIN (persists in session) ----
   function initLogin() {
+    // Check if already logged in this session
+    if (sessionStorage.getItem('hc_dash_auth') === 'true') {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('dashboard-content').style.display = 'block';
+      initDashboard();
+      return;
+    }
+
     const loginBtn = document.getElementById('login-btn');
     const passwordInput = document.getElementById('password-input');
     const loginError = document.getElementById('login-error');
@@ -26,6 +34,7 @@
     function tryLogin() {
       const pwd = passwordInput.value.trim();
       if (pwd === DASH_PASSWORD) {
+        sessionStorage.setItem('hc_dash_auth', 'true');
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
         initDashboard();
@@ -186,7 +195,6 @@
 
     try {
       const snapshot = await db.collection('events')
-        .orderBy('serverTimestamp', 'desc')
         .limit(50000)
         .get();
 
