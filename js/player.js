@@ -98,11 +98,13 @@
       startVideo(0);
     }
   }
-  // Entire start screen is clickable
+  // ALL ways to capture the tap on mobile + desktop
   startScreen.addEventListener('click', onStartPlay);
-  startScreen.addEventListener('touchend', onStartPlay, { passive: false });
+  startScreen.addEventListener('touchstart', onStartPlay, { passive: false });
   startPlay.addEventListener('click', onStartPlay);
-  startPlay.addEventListener('touchend', onStartPlay, { passive: false });
+  startPlay.addEventListener('touchstart', onStartPlay, { passive: false });
+  // Global fallback for inline onclick
+  window._startVideo = onStartPlay;
 
   function startVideo(seekTo) {
     activated = true; muted = false;

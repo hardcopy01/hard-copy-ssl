@@ -21,14 +21,14 @@
     <!-- TAP LAYER -->
     <div id="tap-layer"></div>
 
-    <!-- START SCREEN -->
-    <div id="start-screen">
+    <!-- START SCREEN (onclick inline = mobile fallback) -->
+    <div id="start-screen" onclick="window._startVideo && window._startVideo()">
       <div id="start-overlay"></div>
       <div id="start-content">
         <div id="start-ring">
-          <button id="start-play">
+          <div id="start-play">
             <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
-          </button>
+          </div>
         </div>
         <p id="start-label">SEU VÍDEO JÁ COMEÇOU</p>
         <p id="start-sub">
