@@ -70,8 +70,16 @@
           this.textContent = 'Carregando...';
           loadMetrics().then(() => { this.textContent = 'Atualizar'; });
         });
-        // Date filter
-        document.getElementById('date-filter').addEventListener('change', function () { loadMetrics(); });
+        // Date filter buttons
+        var dateBtns = document.querySelectorAll('.date-btn');
+        dateBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            dateBtns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            currentRange = btn.getAttribute('data-range');
+            loadMetrics();
+          });
+        });
         // Auto refresh every 30s
         setInterval(loadMetrics, 30000);
       } else {
@@ -200,18 +208,14 @@
   }
 
   // ---- DATE FILTER ----
+  var currentRange = '30d';
+
   function getDateRange() {
-    var filter = document.getElementById('date-filter').value;
     var now = new Date();
-    var from = null;
-    if (filter === 'today') {
-      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    } else if (filter === '7d') {
-      from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    } else if (filter === '30d') {
-      from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    }
-    return from ? from.toISOString() : null;
+    if (currentRange === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    if (currentRange === '7d') return new Date(now.getTime() - 7 * 86400000).toISOString();
+    if (currentRange === '30d') return new Date(now.getTime() - 30 * 86400000).toISOString();
+    return null; // 'all'
   }
 
   // ---- LOAD METRICS ----

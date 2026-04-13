@@ -105,14 +105,20 @@ body {
   gap: 12px;
 }
 
-.date-range {
+/* Date filter buttons */
+.date-btn {
   background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.7);
-  padding: 8px 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  padding: 6px 14px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+.date-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+.date-btn.active { background: #e50914; color: #fff; border-color: #e50914; }
 
 .refresh-btn {
   background: rgba(255,255,255,0.08);
