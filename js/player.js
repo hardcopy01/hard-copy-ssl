@@ -56,8 +56,10 @@
     hideLoading();
     // Play video fast (10x) muted in background for dopamine preview
     video.muted = true;
-    video.playbackRate = 10;
+    video.playbackRate = 4;
     video.play().catch(function () {});
+    // Hide tap layer while start screen is showing
+    tapLayer.style.display = 'none';
     startScreen.classList.remove('hidden');
   }
 
@@ -87,6 +89,7 @@
   function onStartPlay(e) {
     e.preventDefault(); e.stopPropagation();
     startScreen.classList.add('hidden');
+    tapLayer.style.display = '';
     var saved = localStorage.getItem('hc_video_time');
     var reachedCheckout = localStorage.getItem('hc_reached_checkout');
     if (saved && parseFloat(saved) > 10) {
