@@ -27,7 +27,12 @@
         Hard Copy SSL
       </h1>
       <div class="header-actions">
-        <span class="date-range" id="date-range"></span>
+        <select id="date-filter" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;padding:8px 12px;border-radius:6px;font-size:13px;cursor:pointer">
+          <option value="today">Hoje</option>
+          <option value="7d" selected>Últimos 7 dias</option>
+          <option value="30d">Últimos 30 dias</option>
+          <option value="all">Tudo</option>
+        </select>
         <button class="refresh-btn" id="refresh-btn">Atualizar</button>
       </div>
     </div>

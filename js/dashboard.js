@@ -56,7 +56,7 @@
     document.getElementById('date-range').textContent =
       formatDate(monthAgo) + ' - ' + formatDate(now);
 
-    // Wait for Firebase to be ready (loaded by firebase/config.js)
+    // Wait for Firebase to be ready
     function waitForFirebase() {
       if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
         db = firebase.firestore();
@@ -65,7 +65,14 @@
           initCharts();
           loadMetrics();
         });
-        document.getElementById('refresh-btn').addEventListener('click', loadMetrics);
+        // Refresh button
+        document.getElementById('refresh-btn').addEventListener('click', function () {
+          this.textContent = 'Carregando...';
+          loadMetrics().then(() => { this.textContent = 'Atualizar'; });
+        });
+        // Date filter
+        document.getElementById('date-filter').addEventListener('change', function () { loadMetrics(); });
+        // Auto refresh every 30s
         setInterval(loadMetrics, 30000);
       } else {
         setTimeout(waitForFirebase, 500);
@@ -192,6 +199,21 @@
     }]);
   }
 
+  // ---- DATE FILTER ----
+  function getDateRange() {
+    var filter = document.getElementById('date-filter').value;
+    var now = new Date();
+    var from = null;
+    if (filter === 'today') {
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (filter === '7d') {
+      from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (filter === '30d') {
+      from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+    return from ? from.toISOString() : null;
+  }
+
   // ---- LOAD METRICS ----
   async function loadMetrics() {
     if (!db) return;
@@ -201,8 +223,17 @@
         .limit(5000)
         .get();
 
-      const events = [];
-      snapshot.forEach((doc) => events.push(doc.data()));
+      var allEvents = [];
+      snapshot.forEach((doc) => allEvents.push(doc.data()));
+
+      // Filter by date
+      var fromDate = getDateRange();
+      var events = allEvents;
+      if (fromDate) {
+        events = allEvents.filter(function (e) {
+          return e.timestamp && e.timestamp >= fromDate;
+        });
+      }
 
       const mA = computeFullMetrics(events, 'A');
       const mB = computeFullMetrics(events, 'B');
