@@ -98,6 +98,9 @@
       startVideo(0);
     }
   }
+  // Entire start screen is clickable
+  startScreen.addEventListener('click', onStartPlay);
+  startScreen.addEventListener('touchend', onStartPlay, { passive: false });
   startPlay.addEventListener('click', onStartPlay);
   startPlay.addEventListener('touchend', onStartPlay, { passive: false });
 
