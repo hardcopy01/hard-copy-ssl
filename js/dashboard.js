@@ -195,7 +195,7 @@
 
     try {
       const snapshot = await db.collection('events')
-        .limit(50000)
+        .limit(10000)
         .get();
 
       const events = [];
