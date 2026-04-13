@@ -158,6 +158,36 @@ html,body{
 }
 #video-wrapper.pip-mode #pip-close{display:flex}
 
+/* === START SCREEN (big play button) === */
+#start-screen{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.7);z-index:80;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+}
+#start-screen.hidden{display:none}
+
+#start-play{
+  width:90px;height:90px;border-radius:50%;
+  background:rgba(229,9,20,.9);border:3px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  animation:pulse-play 1.8s ease-in-out infinite;
+  box-shadow:0 0 40px rgba(229,9,20,.5),0 0 80px rgba(229,9,20,.2);
+}
+#start-play svg{width:36px;height:36px;fill:#fff;margin-left:4px}
+
+#start-text{
+  color:rgba(255,255,255,.6);font-size:14px;font-weight:600;
+  animation:pulse-text 2s ease-in-out infinite;
+}
+
+@keyframes pulse-play{
+  0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(229,9,20,.5),0 0 80px rgba(229,9,20,.2)}
+  50%{transform:scale(1.1);box-shadow:0 0 60px rgba(229,9,20,.7),0 0 120px rgba(229,9,20,.3)}
+}
+@keyframes pulse-text{0%,100%{opacity:.6}50%{opacity:.3}}
+
 /* === LOADING === */
 #loading-screen{
   position:fixed;top:0;left:0;width:100vw;height:100vh;
@@ -170,7 +200,7 @@ html,body{
 
 /* === MOBILE === */
 @media(max-width:768px){
-  #video-element{ object-fit:cover; }
+  #video-element{ object-fit:contain; }
   #player-controls{padding:0 14px 20px;padding-bottom:max(20px,env(safe-area-inset-bottom));gap:10px}
   #progress-container{height:7px}
   #progress-bar::after{width:16px;height:16px;right:-7px}
@@ -181,7 +211,10 @@ html,body{
   #center-btn{width:80px;height:80px}
   #center-btn svg{width:36px;height:36px}
   .speed-option{padding:6px 11px;font-size:12px}
-  #countdown-display{font-size:12px}
+  #countdown-display{font-size:14px}
+  #start-play{width:100px;height:100px}
+  #start-play svg{width:42px;height:42px}
+  #start-text{font-size:15px}
   #offer-flash{font-size:15px;padding:14px 24px}
   #video-wrapper.pip-mode{width:180px;height:100px;bottom:12px;right:12px}
 }

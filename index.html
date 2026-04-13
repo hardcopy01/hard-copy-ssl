@@ -15,8 +15,16 @@
   <div id="video-wrapper">
     <video id="video-element" playsinline preload="auto" muted></video>
 
-    <!-- TAP LAYER: captures ALL clicks/taps, above everything -->
+    <!-- TAP LAYER -->
     <div id="tap-layer"></div>
+
+    <!-- START SCREEN: big play button -->
+    <div id="start-screen">
+      <button id="start-play">
+        <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+      </button>
+      <p id="start-text">Toque para assistir</p>
+    </div>
 
     <!-- Center play/pause -->
     <button id="center-btn">

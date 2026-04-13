@@ -1,6 +1,13 @@
 /* ============================================
-   PLAYER — <video> + HLS.js = controle TOTAL
-   Velocidade funciona nativamente!
+   PLAYER — <video> + HLS.js
+
+   FLOW:
+   1. Video loads muted (HLS)
+   2. Start screen: big PLAY pulsing
+   3. User taps play →
+      a) New user → video plays with sound from 0
+      b) Returning → resume screen (continue / zero / checkout)
+   4. Controls: tap = toggle, center btn = play/pause
    ============================================ */
 
 (function () {
@@ -8,6 +15,8 @@
   var wrapper = document.getElementById('video-wrapper');
   var loading = document.getElementById('loading-screen');
   var tapLayer = document.getElementById('tap-layer');
+  var startScreen = document.getElementById('start-screen');
+  var startPlay = document.getElementById('start-play');
   var centerBtn = document.getElementById('center-btn');
   var cbPause = document.getElementById('cb-pause');
   var cbPlay = document.getElementById('cb-play');
@@ -34,7 +43,6 @@
   var offerDone = false;
   var currentSpeed = 1;
 
-  // HLS URL
   var videoId = window.HC_AB.getVideoId(window.HC_AB.variant);
   var HLS_URL = window.HC_AB.getHlsUrl(videoId);
 
@@ -46,7 +54,7 @@
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, onReady);
       hls.on(Hls.Events.ERROR, function (ev, data) {
-        if (data.fatal) { console.warn('[HLS] Fatal error, trying MP4'); video.src = HLS_URL.replace('playlist.m3u8', 'play_720p.mp4'); }
+        if (data.fatal) video.src = HLS_URL.replace('playlist.m3u8', 'play_720p.mp4');
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = HLS_URL;
@@ -56,68 +64,66 @@
 
   function onReady() {
     hideLoading();
+    // Try muted autoplay so thumbnail shows
     video.muted = true;
-    video.play().catch(function () {});
-
-    var saved = localStorage.getItem('hc_video_time');
-    var reachedCheckout = localStorage.getItem('hc_reached_checkout');
-    if (saved && parseFloat(saved) > 10) {
-      showResume(parseFloat(saved), reachedCheckout === 'true');
-    }
+    video.play().then(function () {
+      // Playing muted — pause immediately, let start screen handle it
+      video.pause();
+      video.currentTime = 0;
+    }).catch(function () {});
+    // Show start screen
+    startScreen.classList.remove('hidden');
   }
 
   // === VIDEO EVENTS ===
-  video.addEventListener('play', function () {
-    playing = true; syncUI(); fire('hc:videoplay');
-  });
-  video.addEventListener('pause', function () {
-    playing = false; syncUI(); if (activated) savePos(); fire('hc:videopause', { currentTime: video.currentTime });
-  });
+  video.addEventListener('play', function () { playing = true; syncUI(); fire('hc:videoplay'); });
+  video.addEventListener('pause', function () { playing = false; syncUI(); if (activated) savePos(); fire('hc:videopause', { currentTime: video.currentTime }); });
   video.addEventListener('timeupdate', function () {
     if (activated) { updateBar(); updateCD(); savePos(); checkOffer(); }
     fire('hc:timeupdate', { currentTime: video.currentTime, duration: video.duration });
   });
   video.addEventListener('ended', function () { playing = false; syncUI(); });
 
-  // === FIRST TAP = UNMUTE ===
-  function onFirstTap(e) {
+  // === START PLAY BUTTON ===
+  function onStartPlay(e) {
     e.preventDefault(); e.stopPropagation();
-    if (activated) return;
+    startScreen.classList.add('hidden');
+
+    var saved = localStorage.getItem('hc_video_time');
+    var reachedCheckout = localStorage.getItem('hc_reached_checkout');
+
+    if (saved && parseFloat(saved) > 10) {
+      showResume(parseFloat(saved), reachedCheckout === 'true');
+    } else {
+      // New user — play from start with sound
+      startVideo(0);
+    }
+  }
+
+  startPlay.addEventListener('click', onStartPlay);
+  startPlay.addEventListener('touchend', onStartPlay, { passive: false });
+
+  function startVideo(seekTo) {
     activated = true; muted = false;
     video.muted = false; video.volume = 1;
+    video.currentTime = seekTo;
+    video.playbackRate = currentSpeed;
+    video.play();
     if (volumeSlider) volumeSlider.value = 100;
     updateVolIcon(100);
-    // Video already playing muted — just unmuted, continues playing!
-    // Switch tap layer to controls mode
-    tapLayer.removeEventListener('click', onFirstTap);
-    tapLayer.removeEventListener('touchend', onFirstTap);
+    // Enable controls on tap layer
     tapLayer.addEventListener('click', onControlTap);
     tapLayer.addEventListener('touchend', onControlTap, { passive: false });
     fire('hc:user_activated');
   }
 
-  tapLayer.addEventListener('click', onFirstTap);
-  tapLayer.addEventListener('touchend', onFirstTap, { passive: false });
-
   // === CONTROLS TOGGLE ===
-  function onControlTap(e) {
-    e.preventDefault(); e.stopPropagation();
-    if (ctrlVisible) hideCtrl(); else showCtrl();
-  }
-
+  function onControlTap(e) { e.preventDefault(); e.stopPropagation(); if (ctrlVisible) hideCtrl(); else showCtrl(); }
   function showCtrl() {
-    ctrlVisible = true;
-    controls.classList.add('show');
-    centerBtn.classList.add('show');
-    clearTimeout(ctrlTimer);
-    ctrlTimer = setTimeout(function () { if (playing) hideCtrl(); }, 4000);
+    ctrlVisible = true; controls.classList.add('show'); centerBtn.classList.add('show');
+    clearTimeout(ctrlTimer); ctrlTimer = setTimeout(function () { if (playing) hideCtrl(); }, 4000);
   }
-
-  function hideCtrl() {
-    ctrlVisible = false;
-    controls.classList.remove('show');
-    centerBtn.classList.remove('show');
-  }
+  function hideCtrl() { ctrlVisible = false; controls.classList.remove('show'); centerBtn.classList.remove('show'); }
 
   // === CENTER BUTTON ===
   centerBtn.addEventListener('click', function (e) { e.stopPropagation(); togglePlay(); });
@@ -125,10 +131,7 @@
 
   // === BOTTOM PLAY/PAUSE ===
   playPauseBtn.addEventListener('click', function (e) { e.stopPropagation(); togglePlay(); });
-
-  function togglePlay() {
-    if (playing) video.pause(); else video.play();
-  }
+  function togglePlay() { if (playing) video.pause(); else video.play(); }
 
   // === SYNC UI ===
   function syncUI() {
@@ -163,44 +166,37 @@
     if (t >= OFFER_TIME) localStorage.setItem('hc_reached_offer', 'true');
     if (t >= CHECKOUT_TIME) localStorage.setItem('hc_reached_checkout', 'true');
   }
-
   function getCD1(t) {
     if (t >= OFFER_TIME) return 0;
     if (t <= CD_NORMAL) return CD_TOTAL - t;
     return Math.max(0, Math.round((CD_TOTAL - CD_NORMAL) * (1 - (t - CD_NORMAL) / (OFFER_TIME - CD_NORMAL))));
   }
-
   function fmtT(s) { var m = Math.floor(s / 60), sec = Math.floor(s % 60); return m + ':' + (sec < 10 ? '0' : '') + sec; }
 
   // === OFFER FLASH ===
   function checkOffer() {
     if (!offerDone && video.currentTime >= OFFER_TIME && video.currentTime < OFFER_TIME + 5) {
-      offerDone = true;
-      offerFlash.style.display = 'block';
+      offerDone = true; offerFlash.style.display = 'block';
       setTimeout(function () { offerFlash.style.display = 'none'; }, 4000);
     }
   }
 
-  // === SPEED (WORKS NOW with native video!) ===
+  // === SPEED ===
   var speedBtns = document.querySelectorAll('.speed-option');
   for (var i = 0; i < speedBtns.length; i++) {
     speedBtns[i].addEventListener('click', function (e) {
       e.stopPropagation();
       currentSpeed = parseFloat(this.getAttribute('data-speed'));
       video.playbackRate = currentSpeed;
-      for (var j = 0; j < speedBtns.length; j++) {
-        speedBtns[j].classList.toggle('active', parseFloat(speedBtns[j].getAttribute('data-speed')) === currentSpeed);
-      }
+      for (var j = 0; j < speedBtns.length; j++) speedBtns[j].classList.toggle('active', parseFloat(speedBtns[j].getAttribute('data-speed')) === currentSpeed);
     });
   }
 
   // === VOLUME ===
   if (volumeSlider) {
     volumeSlider.addEventListener('input', function (e) {
-      e.stopPropagation();
-      var v = parseInt(this.value);
-      video.volume = v / 100; video.muted = v === 0; muted = v === 0;
-      updateVolIcon(v);
+      e.stopPropagation(); var v = parseInt(this.value);
+      video.volume = v / 100; video.muted = v === 0; muted = v === 0; updateVolIcon(v);
     });
   }
   volIcon.addEventListener('click', function (e) {
@@ -208,7 +204,6 @@
     if (muted) { video.muted = false; video.volume = 1; muted = false; if (volumeSlider) volumeSlider.value = 100; updateVolIcon(100); }
     else { video.muted = true; muted = true; updateVolIcon(0); }
   });
-
   function updateVolIcon(v) {
     if (v === 0 || muted) volIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><line x1="18" y1="9" x2="24" y2="15" stroke="#fff" stroke-width="2"/><line x1="24" y1="9" x2="18" y2="15" stroke="#fff" stroke-width="2"/></svg>';
     else volIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
@@ -216,7 +211,6 @@
 
   // === RESUME ===
   function showResume(t, reachedCheckout) {
-    video.pause();
     var ov = document.createElement('div');
     ov.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:70;gap:12px;padding:20px;';
     var label = t >= OFFER_TIME ? 'Você está na parte da oferta' : 'Você estava assistindo ' + getLabel(t);
@@ -226,22 +220,10 @@
     ov.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:13px">' + fmtT(t) + '</p><p style="color:#fff;font-size:20px;font-weight:600;text-align:center;max-width:480px;line-height:1.4;margin-bottom:12px">' + label + '</p>' + btns;
     wrapper.appendChild(ov);
 
-    function go(seek) {
-      ov.remove(); activated = true; muted = false;
-      video.muted = false; video.volume = 1;
-      if (volumeSlider) volumeSlider.value = 100; updateVolIcon(100);
-      video.currentTime = seek; video.play();
-      tapLayer.removeEventListener('click', onFirstTap);
-      tapLayer.removeEventListener('touchend', onFirstTap);
-      tapLayer.addEventListener('click', onControlTap);
-      tapLayer.addEventListener('touchend', onControlTap, { passive: false });
-      fire('hc:user_activated');
-    }
-
-    document.getElementById('rc').onclick = function () { go(t); };
+    document.getElementById('rc').onclick = function () { ov.remove(); startVideo(t); };
     document.getElementById('rz').onclick = function () {
       localStorage.removeItem('hc_video_time'); localStorage.removeItem('hc_reached_offer'); localStorage.removeItem('hc_reached_checkout');
-      go(0);
+      ov.remove(); startVideo(0);
     };
     if (reachedCheckout && document.getElementById('rck')) {
       document.getElementById('rck').onclick = function () {
@@ -286,5 +268,5 @@
 
   // === GO ===
   init();
-  setTimeout(function () { if (loading.style.display !== 'none') hideLoading(); }, 10000);
+  setTimeout(function () { if (loading.style.display !== 'none') { hideLoading(); startScreen.classList.remove('hidden'); } }, 10000);
 })();
