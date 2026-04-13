@@ -1,0 +1,345 @@
+/* ============================================
+   DASHBOARD — Bunny-style A/B Metrics
+   ============================================ */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+/* ---- LOGIN ---- */
+#login-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+#login-section h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+#login-section input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 300px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#login-section input:focus {
+  border-color: rgba(255,255,255,0.4);
+}
+
+#login-section input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+#login-section button {
+  background: #e50914;
+  color: #fff;
+  border: none;
+  padding: 12px 40px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#login-section button:hover {
+  background: #f40612;
+}
+
+#login-error {
+  color: #e50914;
+  font-size: 14px;
+  display: none;
+}
+
+/* ---- DASHBOARD LAYOUT ---- */
+#dashboard-content {
+  display: none;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ---- HEADER ---- */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.dash-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-range {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.refresh-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.refresh-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* ---- SECTION TITLES ---- */
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .badge {
+  background: #e50914;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ---- RETENTION CHART (wave style) ---- */
+.retention-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.chart-tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+.chart-tab.active {
+  color: #fff;
+  border-bottom-color: #3b82f6;
+}
+
+.chart-container {
+  position: relative;
+  height: 320px;
+}
+
+/* ---- A/B TEST TABLE ---- */
+.ab-table-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.ab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ab-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ab-table thead th:hover {
+  color: rgba(255,255,255,0.8);
+}
+
+.ab-table tbody td {
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  white-space: nowrap;
+}
+
+.ab-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.video-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.color-dot.dot-a { background: #e50914; }
+.color-dot.dot-b { background: #22c55e; }
+
+.video-thumb {
+  width: 40px;
+  height: 28px;
+  background: #222;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.winner-cell {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+/* ---- INDIVIDUAL VIDEO METRICS ---- */
+.video-detail-section {
+  margin-bottom: 24px;
+}
+
+.video-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.video-detail-header .color-dot {
+  width: 12px;
+  height: 12px;
+}
+
+.video-detail-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.metric-card .value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.metric-card .label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  text-transform: capitalize;
+}
+
+/* ---- INDIVIDUAL RETENTION CHART ---- */
+.individual-chart-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.individual-chart-container {
+  position: relative;
+  height: 250px;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  #dashboard-content {
+    padding: 16px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-container {
+    height: 240px;
+  }
+
+  .ab-table {
+    font-size: 13px;
+  }
+}

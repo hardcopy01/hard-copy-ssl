@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Dashboard — Hard Copy SSL</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-section">
+    <h2>Dashboard Hard Copy</h2>
+    <input type="password" id="password-input" placeholder="Senha de acesso" autocomplete="off">
+    <button id="login-btn">Entrar</button>
+    <p id="login-error"></p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard-content">
+
+    <!-- HEADER -->
+    <div class="dash-header">
+      <h1>Hard Copy SSL — Dashboard</h1>
+      <div class="header-actions">
+        <span class="date-range" id="date-range"></span>
+        <button class="refresh-btn" id="refresh-btn">Atualizar</button>
+      </div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- SECTION: RETENTION CHART (wave/area, both videos) -->
+    <!-- ================================================ -->
+    <div class="retention-section">
+      <h2 class="section-title">Retenção Geral</h2>
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-tab="retention">Retenção Geral</button>
+      </div>
+      <div class="chart-container">
+        <canvas id="retention-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- SECTION: A/B TEST TABLE                          -->
+    <!-- ================================================ -->
+    <div class="ab-table-section">
+      <h2 class="section-title">Teste A/B <span class="badge">LIVE</span></h2>
+      <table class="ab-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Tráfego</th>
+            <th>Visualizações</th>
+            <th>Vis. Únicas</th>
+            <th>Plays</th>
+            <th>Plays Únicos</th>
+            <th>Play Rate</th>
+            <th>Retenção ao Pitch</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="row-a">
+            <td>
+              <div class="video-name-cell">
+                <span class="color-dot dot-a"></span>
+                <div class="video-thumb"></div>
+                <span id="name-a">Vídeo A</span>
+              </div>
+            </td>
+            <td id="ab-traffic-a">50,00%</td>
+            <td id="ab-views-a">0</td>
+            <td id="ab-unique-a">0</td>
+            <td id="ab-plays-a">0</td>
+            <td id="ab-unique-plays-a">0</td>
+            <td id="ab-playrate-a">0%</td>
+            <td id="ab-retention-pitch-a">0%</td>
+          </tr>
+          <tr id="row-b">
+            <td>
+              <div class="video-name-cell">
+                <span class="color-dot dot-b"></span>
+                <div class="video-thumb"></div>
+                <span id="name-b">Vídeo B</span>
+              </div>
+            </td>
+            <td id="ab-traffic-b">50,00%</td>
+            <td id="ab-views-b">0</td>
+            <td id="ab-unique-b">0</td>
+            <td id="ab-plays-b">0</td>
+            <td id="ab-unique-plays-b">0</td>
+            <td id="ab-playrate-b">0%</td>
+            <td id="ab-retention-pitch-b">0%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- SECTION: VIDEO A — Individual Metrics + Chart     -->
+    <!-- ================================================ -->
+    <div class="video-detail-section">
+      <div class="video-detail-header">
+        <span class="color-dot dot-a"></span>
+        <h3>Vídeo A — Métricas Individuais</h3>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="value" id="va-views">0</div><div class="label">Visualizações</div></div>
+        <div class="metric-card"><div class="value" id="va-unique-views">0</div><div class="label">Visualizações Únicas</div></div>
+        <div class="metric-card"><div class="value" id="va-plays">0</div><div class="label">Plays</div></div>
+        <div class="metric-card"><div class="value" id="va-unique-plays">0</div><div class="label">Plays Únicos</div></div>
+        <div class="metric-card"><div class="value" id="va-playrate">0%</div><div class="label">Play Rate</div></div>
+        <div class="metric-card"><div class="value" id="va-retention-pitch">0%</div><div class="label">Retenção ao Pitch</div></div>
+        <div class="metric-card"><div class="value" id="va-audience-pitch">0</div><div class="label">Audiência do Pitch</div></div>
+        <div class="metric-card"><div class="value" id="va-engagement">0%</div><div class="label">Engajamento</div></div>
+        <div class="metric-card"><div class="value" id="va-btn-clicks">0</div><div class="label">Cliques no Botão</div></div>
+        <div class="metric-card"><div class="value" id="va-conversions">0</div><div class="label">Conversões</div></div>
+        <div class="metric-card"><div class="value" id="va-conv-rate">0%</div><div class="label">Taxa de Conversão</div></div>
+        <div class="metric-card"><div class="value" id="va-revenue">R$ 0,00</div><div class="label">Receita</div></div>
+      </div>
+
+      <div class="individual-chart-section" style="margin-top: 16px;">
+        <h3 class="section-title" style="font-size:14px;">Retenção — Vídeo A</h3>
+        <div class="individual-chart-container">
+          <canvas id="chart-a"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- SECTION: VIDEO B — Individual Metrics + Chart     -->
+    <!-- ================================================ -->
+    <div class="video-detail-section">
+      <div class="video-detail-header">
+        <span class="color-dot dot-b"></span>
+        <h3>Vídeo B — Métricas Individuais</h3>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="value" id="vb-views">0</div><div class="label">Visualizações</div></div>
+        <div class="metric-card"><div class="value" id="vb-unique-views">0</div><div class="label">Visualizações Únicas</div></div>
+        <div class="metric-card"><div class="value" id="vb-plays">0</div><div class="label">Plays</div></div>
+        <div class="metric-card"><div class="value" id="vb-unique-plays">0</div><div class="label">Plays Únicos</div></div>
+        <div class="metric-card"><div class="value" id="vb-playrate">0%</div><div class="label">Play Rate</div></div>
+        <div class="metric-card"><div class="value" id="vb-retention-pitch">0%</div><div class="label">Retenção ao Pitch</div></div>
+        <div class="metric-card"><div class="value" id="vb-audience-pitch">0</div><div class="label">Audiência do Pitch</div></div>
+        <div class="metric-card"><div class="value" id="vb-engagement">0%</div><div class="label">Engajamento</div></div>
+        <div class="metric-card"><div class="value" id="vb-btn-clicks">0</div><div class="label">Cliques no Botão</div></div>
+        <div class="metric-card"><div class="value" id="vb-conversions">0</div><div class="label">Conversões</div></div>
+        <div class="metric-card"><div class="value" id="vb-conv-rate">0%</div><div class="label">Taxa de Conversão</div></div>
+        <div class="metric-card"><div class="value" id="vb-revenue">R$ 0,00</div><div class="label">Receita</div></div>
+      </div>
+
+      <div class="individual-chart-section" style="margin-top: 16px;">
+        <h3 class="section-title" style="font-size:14px;">Retenção — Vídeo B</h3>
+        <div class="individual-chart-container">
+          <canvas id="chart-b"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="firebase/config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

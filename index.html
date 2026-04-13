@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Hard Copy</title>
+  <link rel="stylesheet" href="css/player.css">
+  <script src="https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js"></script>
+</head>
+<body>
+
+  <div id="loading-screen"><div class="loader"></div></div>
+
+  <div id="video-wrapper">
+    <iframe id="bunny-iframe" src="" loading="eager"
+      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+      allowfullscreen="false"></iframe>
+
+    <!-- TAP LAYER: captures ALL clicks/taps, above everything -->
+    <div id="tap-layer"></div>
+
+    <!-- Center play/pause -->
+    <button id="center-btn">
+      <svg id="cb-pause" viewBox="0 0 24 24"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
+      <svg id="cb-play" viewBox="0 0 24 24" style="display:none"><polygon points="5,3 19,12 5,21"/></svg>
+    </button>
+
+    <!-- Offer flash -->
+    <div id="offer-flash">🔥 A oferta começou! Preste atenção agora.</div>
+
+    <!-- Pause overlay (RED) -->
+    <div id="pause-overlay">
+      <p id="pause-overlay-text"></p>
+      <button id="pause-overlay-btn">CONTINUAR ASSISTINDO</button>
+    </div>
+
+    <!-- PIP close -->
+    <button id="pip-close">&times;</button>
+
+    <!-- Controls bar -->
+    <div id="player-controls">
+      <div id="progress-container"><div id="progress-bar"></div></div>
+      <div id="controls-row">
+        <div class="controls-left">
+          <button class="ctrl-btn" id="play-pause-btn">
+            <svg id="icon-play" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            <svg id="icon-pause" viewBox="0 0 24 24" style="display:none"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
+          </button>
+          <div class="volume-group">
+            <span class="volume-icon" id="volume-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            </span>
+            <input type="range" id="volume-slider" min="0" max="100" value="100">
+          </div>
+          <span id="countdown-display">2:30 até a oferta</span>
+        </div>
+        <div class="controls-right">
+          <div class="speed-group">
+            <button class="speed-option active" data-speed="1">1x</button>
+            <button class="speed-option" data-speed="1.5">1.5x</button>
+            <button class="speed-option" data-speed="1.8">1.8x</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="checkout-section">
+    <iframe id="checkout-iframe" src="" allow="payment"></iframe>
+  </div>
+
+  <script src="js/ab-test.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/overlays.js"></script>
+  <script src="js/pip.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="firebase/config.js" defer></script>
+</body>
+</html>
