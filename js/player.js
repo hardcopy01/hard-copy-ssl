@@ -54,13 +54,23 @@
 
   function onReady() {
     hideLoading();
-    // Play video fast (10x) muted in background for dopamine preview
-    video.muted = true;
-    video.playbackRate = 4;
-    video.play().catch(function () {});
-    // Hide tap layer while start screen is showing
-    tapLayer.style.display = 'none';
-    startScreen.classList.remove('hidden');
+
+    var saved = localStorage.getItem('hc_video_time');
+    var reachedCheckout = localStorage.getItem('hc_reached_checkout');
+
+    if (saved && parseFloat(saved) > 10) {
+      // RETURNING USER → skip play button, go straight to resume
+      video.muted = true;
+      video.pause();
+      showResume(parseFloat(saved), reachedCheckout === 'true');
+    } else {
+      // NEW USER → show start screen with fast preview
+      video.muted = true;
+      video.playbackRate = 4;
+      video.play().catch(function () {});
+      tapLayer.style.display = 'none';
+      startScreen.classList.remove('hidden');
+    }
   }
 
   // === VIDEO EVENTS ===
