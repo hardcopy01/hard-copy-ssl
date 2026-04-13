@@ -1,4 +1,4 @@
-/* A/B TEST — uses vault for IDs */
+/* A/B TEST — 50/50 split, 2 videos */
 (function () {
   function getOrAssign() {
     var v = localStorage.getItem('hc_ab_variant');
@@ -12,13 +12,33 @@
   }
 
   var variant = getOrAssign();
-  // Video B not set yet — uses A for both
-  var vidB = null;
+
+  // Video config per variant
+  var CONFIG = {
+    A: {
+      id: window._BC.vA,
+      name: 'HARD LEAD SSL',
+      offerTime: 356,    // 5:56
+      checkoutTime: 618, // 10:18
+    },
+    B: {
+      id: window._BC.vB,
+      name: 'HARD LEAD VSL',
+      offerTime: 321,    // 5:21
+      checkoutTime: 582, // 9:42
+    }
+  };
+
+  var current = CONFIG[variant] || CONFIG.A;
 
   window.HC_AB = {
     variant: variant,
     visitorId: getVisitorId(),
-    getVideoId: function (v) { return (v === 'B' && vidB) ? vidB : window._BC.v; },
+    videoId: current.id,
+    videoName: current.name,
+    offerTime: current.offerTime,
+    checkoutTime: current.checkoutTime,
     getHlsUrl: function (vid) { return 'https://' + window._BC.h + '/' + vid + '/playlist.m3u8'; },
+    config: CONFIG,
   };
 })();
