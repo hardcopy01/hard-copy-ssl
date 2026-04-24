@@ -9,19 +9,13 @@
   var pipClose = document.getElementById('pip-close');
 
   var pipActivated = false;
-  var checkoutPreloaded = false;
   var pipClosed = false;
-
-  function preloadCheckout() {
-    if (checkoutPreloaded) return;
-    checkoutPreloaded = true;
-    checkoutIframe.src = CHECKOUT_URL;
-  }
 
   function activatePiP() {
     if (pipActivated) return;
     pipActivated = true;
-    preloadCheckout();
+    // Load checkout iframe ONLY when user actually reaches checkout
+    checkoutIframe.src = CHECKOUT_URL;
     wrapper.classList.add('pip-mode');
     setTimeout(function () {
       document.body.style.background = '#fff';
@@ -50,7 +44,6 @@
 
   window.addEventListener('hc:timeupdate', function (e) {
     var t = e.detail.currentTime;
-    if (t >= CHECKOUT_TIME - 15 && !checkoutPreloaded) preloadCheckout();
     if (t >= CHECKOUT_TIME && !pipActivated) activatePiP();
   });
 })();

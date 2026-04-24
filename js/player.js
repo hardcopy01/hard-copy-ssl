@@ -83,17 +83,11 @@
   });
   video.addEventListener('ended', function () { playing = false; syncUI(); });
 
-  // === META PIXEL: InitiateCheckout when PiP activates ===
+  // === META PIXEL: InitiateCheckout is fired by Ticto checkout iframe itself
+  // We don't fire it here to avoid duplicate events
   function checkCheckoutPixel() {
-    if (!checkoutPixelFired && video.currentTime >= CHECKOUT_TIME) {
-      checkoutPixelFired = true;
-      if (typeof fbq === 'function') {
-        fbq('track', 'InitiateCheckout', {
-          content_name: window.HC_AB.videoName,
-          content_category: window.HC_AB.variant,
-        });
-      }
-    }
+    // Kept for compatibility — Ticto handles InitiateCheckout
+    checkoutPixelFired = true;
   }
 
   // === START PLAY ===
@@ -240,8 +234,7 @@
         document.getElementById('checkout-section').classList.add('visible');
         document.getElementById('checkout-iframe').src = window._CK;
         wrapper.classList.add('pip-mode');
-        // Fire pixel
-        if (typeof fbq === 'function') fbq('track', 'InitiateCheckout', { content_name: window.HC_AB.videoName, content_category: window.HC_AB.variant });
+        // InitiateCheckout is fired by Ticto iframe, no need to duplicate
       };
     }
   }
